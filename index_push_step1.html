@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Северное сияние — ветеринарная клиника</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg:#FFFFFF;
+    --mint-wash:#EBFBF4;
+    --lav-wash:#F3F0FF;
+    --peach-wash:#FFF3EC;
+    --ink:#20262B;
+    --muted:#5B6670;
+    --faint:#8A94A0;
+    --mint:#1FBE8F;
+    --lavender:#8C7CF0;
+    --coral:#FF8C7A;
+    --sun:#FFC24B;
+    --line:#EEEBE2;
+  }
+
+  *{ box-sizing:border-box; }
+  button{ font:inherit; border:none; background:none; cursor:pointer; padding:0; color:inherit; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Nunito',-apple-system,sans-serif;
+    font-size:17px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    line-height:1.15;
+    margin:0;
+    color:var(--ink);
+  }
+  p{ margin:0; }
+  a{ color:inherit; }
+
+  :focus-visible{ outline:3px solid var(--lavender); outline-offset:3px; border-radius:4px; }
+  ::selection{ background:var(--mint-wash); color:var(--ink); }
+
+  .wrap{
+    max-width:720px;
+    margin:0 auto;
+    padding:0 clamp(20px,5vw,32px);
+    position:relative;
+  }
+
+  /* ---------- reveal-on-scroll ---------- */
+  .reveal{ opacity:0; transform:translateY(22px); }
+  .reveal.in{ animation:revealIn .7s cubic-bezier(.16,1,.3,1) forwards; }
+  @keyframes revealIn{ to{ opacity:1; transform:translateY(0); } }
+
+  /* ---------- paw trail divider ---------- */
+  .paw-trail{
+    display:flex;
+    justify-content:center;
+    gap:clamp(14px,4vw,28px);
+    padding:8px 0 0;
+    opacity:.85;
+  }
+  .paw-trail span{
+    font-size:15px;
+    opacity:0;
+    transform:translateY(6px) scale(.7) rotate(-15deg);
+  }
+  .paw-trail.in span{
+    animation:pawPop .5s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  .paw-trail.in span:nth-child(1){ animation-delay:.05s; }
+  .paw-trail.in span:nth-child(2){ animation-delay:.15s; }
+  .paw-trail.in span:nth-child(3){ animation-delay:.25s; }
+  .paw-trail.in span:nth-child(4){ animation-delay:.35s; }
+  .paw-trail.in span:nth-child(5){ animation-delay:.45s; }
+  @keyframes pawPop{ to{ opacity:.8; transform:translateY(0) scale(1) rotate(0deg); } }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    padding:18px 0;
+    position:sticky;
+    top:0;
+    background:rgba(255,255,255,.86);
+    backdrop-filter:blur(10px);
+    z-index:50;
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .mark{
+    font-family:'Fredoka',sans-serif;
+    font-weight:700;
+    font-size:19px;
+    background:linear-gradient(90deg,var(--mint),var(--lavender) 55%,var(--coral));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .nav-link{
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
+    padding:9px 18px;
+    border-radius:999px;
+    background:var(--mint-wash);
+    white-space:nowrap;
+    transition:transform .2s cubic-bezier(.34,1.56,.64,1), background .2s ease;
+  }
+  .nav-link:hover{ transform:translateY(-2px) scale(1.05); background:var(--lav-wash); }
+  .nav-link:active{ transform:translateY(0) scale(.96); }
+
+  /* ---------- HERO ---------- */
+  .hero{ position:relative; padding:clamp(48px,9vw,88px) 0 clamp(64px,10vw,104px); overflow:hidden; }
+  .blob{ position:absolute; border-radius:50%; filter:blur(50px); opacity:.55; pointer-events:none; z-index:0; }
+  .blob-1{ width:280px; height:280px; background:var(--mint); top:-60px; left:-60px; animation:floatBlob 13s ease-in-out infinite; }
+  .blob-2{ width:320px; height:320px; background:var(--lavender); top:20px; right:-100px; opacity:.4; animation:floatBlob 16s ease-in-out infinite reverse; }
+  .blob-3{ width:220px; height:220px; background:var(--coral); bottom:-80px; left:30%; opacity:.35; animation:floatBlob 11s ease-in-out infinite; }
+  @keyframes floatBlob{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(24px,-28px) scale(1.1); }
+  }
+  .paw{
+    position:absolute;
+    font-size:22px;
+    opacity:0;
+    animation:pawFloat 9s ease-in infinite;
+    pointer-events:none;
+    z-index:0;
+  }
+  @keyframes pawFloat{
+    0%{ transform:translateY(0) rotate(-8deg) scale(.9); opacity:0; }
+    12%{ opacity:.55; }
+    50%{ transform:translateY(-90px) rotate(4deg) scale(1.05); }
+    85%{ opacity:.35; }
+    100%{ transform:translateY(-180px) rotate(12deg) scale(.9); opacity:0; }
+  }
+
+  .hero-inner{ position:relative; z-index:1; }
+  .hero-kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:14.5px;
+    font-weight:800;
+    color:var(--mint);
+    background:var(--mint-wash);
+    padding:7px 16px;
+    border-radius:999px;
+    margin-bottom:22px;
+  }
+  .hero-kicker .wag{ display:inline-block; animation:wag 1.6s ease-in-out infinite; }
+  @keyframes wag{
+    0%,100%{ transform:rotate(0deg); }
+    25%{ transform:rotate(-18deg); }
+    75%{ transform:rotate(18deg); }
+  }
+  .hero h1{ font-size:clamp(34px,8vw,58px); max-width:13ch; }
+  .hero .lead{ font-size:clamp(16.5px,2.6vw,19px); color:var(--muted); max-width:42ch; margin-top:20px; font-weight:600; }
+  .hero-cta{ margin-top:32px; display:flex; flex-wrap:wrap; align-items:center; gap:18px; }
+
+  .btn{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    font-family:'Nunito',sans-serif;
+    font-size:16px;
+    font-weight:800;
+    padding:15px 30px;
+    border-radius:999px;
+    cursor:pointer;
+    background:linear-gradient(90deg,var(--mint),#17A87E);
+    color:#fff;
+    box-shadow:0 10px 24px -8px rgba(31,190,143,.55);
+    transition:transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
+    animation:pulseGlow 2.8s ease-in-out infinite;
+  }
+  .btn:hover{ transform:translateY(-3px) scale(1.03); box-shadow:0 14px 30px -8px rgba(31,190,143,.65); }
+  .btn:active{ transform:translateY(0) scale(.97); }
+  @keyframes pulseGlow{
+    0%,100%{ box-shadow:0 10px 24px -8px rgba(31,190,143,.55); }
+    50%{ box-shadow:0 10px 30px -4px rgba(31,190,143,.85); }
+  }
+  .link-quiet{
+    font-size:16px;
+    font-weight:800;
+    color:var(--ink);
+    padding-bottom:2px;
+    border-bottom:2.5px solid var(--sun);
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .link-quiet:hover{ border-bottom-color:var(--coral); transform:translateY(-1px); }
+
+  /* ---------- SECTIONS ---------- */
+  section{ padding:clamp(48px,8vw,72px) 0; position:relative; }
+  .kicker{
+    display:inline-block;
+    font-size:13.5px;
+    font-weight:800;
+    color:var(--lavender);
+    background:var(--lav-wash);
+    padding:6px 14px;
+    border-radius:999px;
+    margin-bottom:16px;
+  }
+  .section-title{ font-size:clamp(24px,4.5vw,32px); max-width:24ch; }
+  .section-sub{ color:var(--muted); max-width:50ch; font-size:clamp(15.5px,2.2vw,17px); margin-top:14px; font-weight:600; }
+
+  .section-mint{ background:var(--mint-wash); }
+  .section-peach{ background:var(--peach-wash); }
+
+  /* ---------- SERVICES ---------- */
+  .services{ margin-top:32px; display:flex; flex-direction:column; gap:12px; }
+  .service-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding:16px 22px;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:0 2px 10px -4px rgba(32,38,43,.08);
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease;
+  }
+  .service-row:hover{
+    transform:translateY(-3px) scale(1.01);
+    box-shadow:0 14px 26px -10px rgba(140,124,240,.35);
+  }
+  .service-name{ font-size:16.5px; font-weight:800; }
+  .service-note{ color:var(--faint); font-size:13.5px; margin-top:2px; font-weight:600; }
+  .service-price{
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    white-space:nowrap;
+    color:#fff;
+    background:linear-gradient(90deg,var(--lavender),#7566DE);
+    padding:7px 16px;
+    border-radius:999px;
+  }
+  @media (max-width:440px){
+    .service-row{ flex-direction:column; align-items:flex-start; gap:8px; }
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{ margin-top:36px; display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  @media (max-width:720px){ .about-grid{ grid-template-columns:1fr; } }
+  .about-card{
+    padding:28px 24px;
+    border-radius:22px;
+    background:#fff;
+    box-shadow:0 4px 16px -6px rgba(32,38,43,.10);
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease;
+  }
+  .about-card:hover{ transform:translateY(-5px) rotate(-0.5deg); box-shadow:0 18px 32px -12px rgba(32,38,43,.18); }
+  .about-emoji{
+    font-size:32px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:56px; height:56px;
+    border-radius:16px;
+    margin-bottom:16px;
+    transition:transform .2s ease;
+  }
+  .about-card:hover .about-emoji{ animation:wiggle .5s ease; }
+  @keyframes wiggle{
+    0%,100%{ transform:rotate(0deg) scale(1); }
+    25%{ transform:rotate(-12deg) scale(1.08); }
+    75%{ transform:rotate(12deg) scale(1.08); }
+  }
+  .about-card:nth-child(1) .about-emoji{ background:var(--mint-wash); }
+  .about-card:nth-child(2) .about-emoji{ background:var(--lav-wash); }
+  .about-card:nth-child(3) .about-emoji{ background:var(--peach-wash); }
+  .about-card h3{ font-size:18px; font-weight:600; margin-bottom:8px; }
+  .about-card p{ color:var(--muted); font-size:15.5px; font-weight:600; }
+
+  /* ---------- FORM ---------- */
+  .form-card{
+    margin-top:36px;
+    background:#fff;
+    border-radius:26px;
+    padding:clamp(24px,5vw,40px);
+    box-shadow:0 12px 32px -14px rgba(32,38,43,.16);
+    position:relative;
+  }
+  .field{ margin-bottom:22px; }
+  .field label{ display:block; font-size:14px; font-weight:800; color:var(--muted); margin-bottom:8px; }
+  .field input,
+  .field textarea{
+    width:100%;
+    font-family:'Nunito',sans-serif;
+    font-size:16.5px;
+    font-weight:600;
+    padding:13px 16px;
+    border:2px solid var(--line);
+    border-radius:14px;
+    background:#FAFAF8;
+    color:var(--ink);
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder{ color:var(--faint); font-weight:600; }
+  .field input:focus,
+  .field textarea:focus{
+    border-color:var(--lavender);
+    background:#fff;
+    box-shadow:0 0 0 4px var(--lav-wash);
+  }
+  .field textarea{ resize:vertical; min-height:76px; }
+  .row-2{ display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; }
+  @media (max-width:520px){ .row-2{ grid-template-columns:1fr; } }
+  .form-status{
+    margin-top:18px;
+    font-size:15px;
+    font-weight:800;
+    padding:14px 18px;
+    border-radius:14px;
+    display:none;
+  }
+  .form-status.show{ display:block; }
+  .form-status.ok{ background:var(--mint-wash); color:#0E7C5C; }
+  .form-status.err{ background:#FFEDEA; color:#B8493A; }
+  .submit-row{ margin-top:6px; }
+  button.btn{ width:100%; justify-content:center; font-size:17px; padding:17px 26px; animation:none; }
+  button.btn:disabled{ opacity:.55; cursor:default; transform:none; }
+
+  /* ---------- CONTACT ---------- */
+  .contact-grid{ margin-top:32px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:520px){ .contact-grid{ grid-template-columns:1fr; } }
+  .contact-item{ padding:20px; border-radius:18px; background:#fff; box-shadow:0 2px 10px -4px rgba(32,38,43,.08); }
+  .contact-item h3{
+    font-family:'Nunito',sans-serif;
+    font-size:13px;
+    font-weight:800;
+    color:var(--faint);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .contact-item p{ font-size:16px; font-weight:700; }
+
+  footer{ padding:32px 0 44px; color:var(--faint); font-size:14px; font-weight:700; }
+  .footer-inner{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; align-items:center; }
+  .footer-paw{ display:inline-block; animation:wag 2.4s ease-in-out infinite; }
+
+  /* ---------- confetti ---------- */
+  #confettiLayer{ position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
+  .confetti-piece{ position:absolute; top:-20px; animation:confettiFall linear forwards; }
+  .confetti-piece.shape{ border-radius:3px; }
+  .confetti-piece.emoji{ font-size:18px; }
+  @keyframes confettiFall{
+    to{ transform:translateY(110vh) rotate(540deg); opacity:.9; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .reveal, .paw-trail span{ opacity:1; transform:none; animation:none; }
+    .blob, .paw, .btn, .hero-kicker .wag, .footer-paw{ animation:none; }
+    .btn:hover{ transform:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="confettiLayer"></div>
+
+  <div class="nav">
+    <div class="wrap nav-inner">
+      <div class="mark">Северное сияние</div>
+      <button type="button" class="nav-link" data-target="kontakty">Контакты</button>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="blob blob-1" aria-hidden="true"></div>
+    <div class="blob blob-2" aria-hidden="true"></div>
+    <div class="blob blob-3" aria-hidden="true"></div>
+    <span class="paw" style="left:8%; animation-delay:0s;" aria-hidden="true">🐾</span>
+    <span class="paw" style="left:42%; animation-delay:3s;" aria-hidden="true">🐾</span>
+    <span class="paw" style="left:78%; animation-delay:6s;" aria-hidden="true">🐾</span>
+
+    <div class="wrap hero-inner">
+      <div class="hero-kicker"><span class="wag">🐾</span> Ветклиника в вашем городе</div>
+      <h1 class="reveal in">Приём для тех, кто вам дорог</h1>
+      <p class="lead reveal in" style="animation-delay:.08s">Кошки, собаки и другие питомцы. Запишитесь онлайн — заявка придёт врачу сразу, а мы перезвоним, чтобы согласовать время.</p>
+      <div class="hero-cta reveal in" style="animation-delay:.16s">
+        <button type="button" class="btn" data-target="zapis">Записаться на приём</button>
+        <button type="button" class="link-quiet" data-target="uslugi">Смотреть услуги</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="paw-trail reveal-trail">
+    <span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span>
+  </div>
+
+  <section id="uslugi" class="section-mint">
+    <div class="wrap">
+      <div class="kicker reveal">Услуги</div>
+      <h2 class="section-title reveal">Цены на приём и диагностику</h2>
+      <p class="section-sub reveal">Все цены в рублях. Точную стоимость лечения врач называет после осмотра.</p>
+      <div class="services">
+        <div class="service-row reveal"><div><div class="service-name">Осмотр</div></div><div class="service-price">850 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">УЗИ</div></div><div class="service-price">от 850 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Рентген</div></div><div class="service-price">от 1 000 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Стерилизация кошки</div></div><div class="service-price">от 3 100 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Кастрация кота</div></div><div class="service-price">2 000 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Вакцинация</div></div><div class="service-price">от 1 800 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Стационар</div><div class="service-note">за сутки пребывания</div></div><div class="service-price">от 1 000 ₽/день</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Ультразвуковая чистка зубов</div></div><div class="service-price">от 2 000 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Биохимический анализ крови</div></div><div class="service-price">от 1 500 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Клинический анализ крови</div></div><div class="service-price">1 100 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">ПЦР тест на вирусы</div></div><div class="service-price">от 800 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Анализ крови на гормоны</div></div><div class="service-price">от 1 600 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">ИФА тест</div></div><div class="service-price">от 1 300 ₽</div></div>
+        <div class="service-row reveal"><div><div class="service-name">Переливание крови</div></div><div class="service-price">от 8 000 ₽</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="o-nas">
+    <div class="wrap">
+      <div class="kicker reveal">Почему к нам</div>
+      <h2 class="section-title reveal">Клиника, которая помнит своих пациентов</h2>
+      <div class="about-grid">
+        <div class="about-card reveal">
+          <div class="about-emoji">🏡</div>
+          <h3>Свой город</h3>
+          <p>Мы принимаем соседей и их питомцев не первый год. Если у животного уже есть история болезни у нас — врач её помнит.</p>
+        </div>
+        <div class="about-card reveal">
+          <div class="about-emoji">📱</div>
+          <h3>Без звонков</h3>
+          <p>Записаться можно прямо с этой страницы. Заявка приходит врачу сразу, а вам перезвонят для подтверждения времени.</p>
+        </div>
+        <div class="about-card reveal">
+          <div class="about-emoji">💛</div>
+          <h3>Спокойный приём</h3>
+          <p>Понимаем, что визит к врачу — стресс не только для животного, но и для хозяина. Стараемся принимать без спешки.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="zapis" class="section-peach">
+    <div class="wrap">
+      <div class="kicker reveal">Запись</div>
+      <h2 class="section-title reveal">Записаться на приём</h2>
+      <p class="section-sub reveal">Заполните форму — мы получим её сразу и перезвоним, чтобы согласовать время.</p>
+
+      <div class="push-notify-box" style="margin:18px 0;padding:16px;border:1px solid rgba(255,255,255,.18);border-radius:16px;background:rgba(255,255,255,.06);">
+  <div style="font-weight:700;margin-bottom:6px;">🔔 Уведомления о новых заявках</div>
+  <div style="font-size:14px;opacity:.8;margin-bottom:12px;">Включите push-уведомления на этом устройстве, чтобы получать сообщения о новых записях.</div>
+  <button type="button" id="enablePushBtn" class="btn" style="width:100%;">Включить уведомления</button>
+  <div id="pushStatus" style="margin-top:8px;font-size:13px;opacity:.85;"></div>
+</div>
+
+<form class="form-card reveal" id="bookingForm" novalidate>
+        <div class="field">
+          <label for="ownerName">Ваше имя</label>
+          <input type="text" id="ownerName" name="ownerName" required autocomplete="name">
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="phone">Телефон</label>
+            <input type="tel" id="phone" name="phone" required autocomplete="tel" placeholder="+7 900 000-00-00">
+          </div>
+          <div class="field">
+            <label for="petInfo">Питомец</label>
+            <input type="text" id="petInfo" name="petInfo" required placeholder="Кот, Барсик">
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="date">Желаемая дата</label>
+            <input type="date" id="date" name="date" required>
+          </div>
+          <div class="field">
+            <label for="time">Желаемое время</label>
+            <input type="time" id="time" name="time" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="comment">Комментарий (необязательно)</label>
+          <textarea id="comment" name="comment" placeholder="Что беспокоит, был ли приём раньше"></textarea>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="btn" id="submitBtn">Записаться</button>
+        </div>
+
+        <div class="form-status" id="formStatus" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="kontakty">
+    <div class="wrap">
+      <div class="kicker reveal">Контакты</div>
+      <h2 class="section-title reveal">Как нас найти</h2>
+      <div class="contact-grid">
+        <div class="contact-item reveal">
+          <h3>Адрес</h3>
+          <p>Ул. Северная, д.7</p>
+        </div>
+        <div class="contact-item reveal">
+          <h3>Телефон</h3>
+          <p>+79116480644</p>
+        </div>
+        <div class="contact-item reveal">
+          <h3>Часы работы</h3>
+          <p>Пн–Пт: 10:00–17:00<br>Сб: 10:00–16:00<br>Вс: выходной</p>
+        </div>
+        <div class="contact-item reveal">
+          <h3>Экстренные случаи</h3>
+          <p>Позвоните заранее — постараемся принять без записи.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span><span class="footer-paw">🐾</span> Ветеринарная клиника «Северное сияние»</span>
+      <span>© <span id="year"></span></span>
+    </div>
+  </footer>
+
+<script>
+(function(){
+  document.getElementById('year').textContent = new Date().getFullYear();
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- in-page navigation (buttons only, no href, no hash) ----------
+  var navEl = document.querySelector('.nav');
+  document.querySelectorAll('[data-target]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = document.getElementById(btn.getAttribute('data-target'));
+      if(!target) return;
+      var navHeight = navEl ? navEl.offsetHeight : 0;
+      var top = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 12;
+      window.scrollTo({ top: top, behavior: reduceMotion ? 'auto' : 'smooth' });
+    });
+  });
+
+  // ---------- scroll reveal ----------
+  var revealEls = document.querySelectorAll('.reveal:not(.in)');
+  var trailEl = document.querySelector('.paw-trail');
+  if('IntersectionObserver' in window && !reduceMotion){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.15});
+    revealEls.forEach(function(el){ io.observe(el); });
+    if(trailEl) io.observe(trailEl);
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+    if(trailEl) trailEl.classList.add('in');
+  }
+
+  // ---------- confetti ----------
+  function launchConfetti(){
+    if(reduceMotion) return;
+    var layer = document.getElementById('confettiLayer');
+    var colors = ['#1FBE8F','#8C7CF0','#FF8C7A','#FFC24B'];
+    var emojis = ['🐾','💚','✨'];
+    for(var i=0;i<30;i++){
+      var piece = document.createElement('div');
+      var useEmoji = Math.random() < 0.3;
+      if(useEmoji){
+        piece.className = 'confetti-piece emoji';
+        piece.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      } else {
+        piece.className = 'confetti-piece shape';
+        var size = 6 + Math.random()*6;
+        piece.style.width = size + 'px';
+        piece.style.height = (size*0.4) + 'px';
+        piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      }
+      piece.style.left = (Math.random()*100) + 'vw';
+      piece.style.animationDuration = (2.2 + Math.random()*1.4) + 's';
+      piece.style.transform = 'rotate(' + (Math.random()*360) + 'deg)';
+      layer.appendChild(piece);
+      (function(p){ setTimeout(function(){ p.remove(); }, 4000); })(piece);
+    }
+  }
+
+
+  // ---------- push notifications: step 1 ----------
+  var enablePushBtn = document.getElementById('enablePushBtn');
+  var pushStatus = document.getElementById('pushStatus');
+
+  function setPushStatus(text) {
+    if (pushStatus) pushStatus.textContent = text;
+  }
+
+  if (enablePushBtn) {
+    enablePushBtn.addEventListener('click', async function () {
+      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+        setPushStatus('На этом устройстве браузер не поддерживает веб-уведомления.');
+        return;
+      }
+
+      try {
+        var permission = await Notification.requestPermission();
+
+        if (permission === 'granted') {
+          await navigator.serviceWorker.register('/sw.js');
+          setPushStatus('Уведомления разрешены. Следующий шаг — подключить получение заявок.');
+          enablePushBtn.textContent = 'Уведомления включены ✓';
+          enablePushBtn.disabled = true;
+        } else if (permission === 'denied') {
+          setPushStatus('Уведомления запрещены в настройках браузера.');
+        } else {
+          setPushStatus('Разрешение на уведомления не выбрано.');
+        }
+      } catch (err) {
+        console.error('Push setup error:', err);
+        setPushStatus('Не удалось включить уведомления. Попробуйте ещё раз.');
+      }
+    });
+  }
+
+  // ---------- booking submission ----------
+  var dateInput = document.getElementById('date');
+  var today = new Date();
+  var iso = today.getFullYear() + '-' +
+    String(today.getMonth()+1).padStart(2,'0') + '-' +
+    String(today.getDate()).padStart(2,'0');
+  dateInput.min = iso;
+
+  var form = document.getElementById('bookingForm');
+  var statusBox = document.getElementById('formStatus');
+  var submitBtn = document.getElementById('submitBtn');
+
+  function showStatus(kind, text){
+    statusBox.textContent = text;
+    statusBox.className = 'form-status show ' + kind;
+  }
+
+  function formatDate(isoStr){
+    if(!isoStr) return '';
+    var parts = isoStr.split('-');
+    if(parts.length !== 3) return isoStr;
+    return parts[2] + '.' + parts[1] + '.' + parts[0];
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    var ownerName = document.getElementById('ownerName').value.trim();
+    var phone = document.getElementById('phone').value.trim();
+    var petInfo = document.getElementById('petInfo').value.trim();
+    var date = document.getElementById('date').value;
+    var time = document.getElementById('time').value;
+    var comment = document.getElementById('comment').value.trim();
+
+    if(!ownerName || !phone || !petInfo || !date || !time){
+      showStatus('err', 'Заполните, пожалуйста, все обязательные поля.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправляем...';
+
+    fetch('/.netlify/functions/send-booking', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        owner_name: ownerName,
+        phone: phone,
+        pet: petInfo,
+        booking_date: date,
+        booking_time: time,
+        comment: comment
+      })
+    })
+    .then(function(res){
+      return res.json().catch(function(){ return {}; }).then(function(data){
+        if(!res.ok) throw new Error(data.error || 'bad response');
+        return data;
+      });
+    })
+    .then(function(){
+      showStatus('ok', 'Заявка отправлена! Мы позвоним вам, чтобы подтвердить время приёма. 🎉');
+      launchConfetti();
+      form.reset();
+      dateInput.min = iso;
+    })
+    .catch(function(error){
+      console.error('Booking error:', error);
+      showStatus('err', 'Не получилось отправить заявку. Попробуйте ещё раз или позвоните нам напрямую.');
+    })
+    .finally(function(){
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Записаться';
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
