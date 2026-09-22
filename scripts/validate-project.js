@@ -68,6 +68,8 @@ ok('встроенный JavaScript страниц синтаксически к
 const index=read('index.html');
 if(/Защита от случайных дублей и спама/i.test(index)) fail('На клиентской странице остался технический блок про антиспам');
 if(/Отзывы/i.test(index)) fail('На клиентской странице остался раздел отзывов');
+if(/\.reveal\s*\{[^}]*opacity\s*:\s*0/i.test(index)) fail('Карточки reveal скрыты CSS по умолчанию — возможен пустой блок услуг');
+
 ok('лишние клиентские блоки отсутствуют');
 
 console.log('\n[VALIDATE] PROJECT READY FOR NETLIFY\n');
