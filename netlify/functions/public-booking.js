@@ -17,7 +17,7 @@ function safe(row){
 
 exports.handler=async event=>{
   try{
-    const {url,headers}=env(),qs=event.queryStringParameters||{},token=clean(qs.token||'',80);
+    const {url,headers}=env(),qs=event.queryStringParameters||{},token=clean(qs.token||qs.t||'',80);
     if(event.httpMethod==='GET'){
       if(!token)return reply(400,{error:'Ссылка на заявку неполная'});
       const r=await fetch(`${url}/rest/v1/bookings?public_token=eq.${encodeURIComponent(token)}&select=*&limit=1`,{headers});

@@ -1,44 +1,13 @@
-[build]
-  command = "npm run validate"
-  publish = "."
-  functions = "netlify/functions"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
-    X-Frame-Options = "DENY"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
-    Cross-Origin-Opener-Policy = "same-origin"
-    Cross-Origin-Resource-Policy = "same-origin"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; manifest-src 'self'; worker-src 'self';"
-
-[[headers]]
-  for = "/index.html"
-  [headers.values]
-    Cache-Control = "no-cache, max-age=0"
-
-[[headers]]
-  for = "/admin.html"
-  [headers.values]
-    Cache-Control = "no-store, max-age=0"
-    X-Robots-Tag = "noindex, nofollow, noarchive"
-
-[[headers]]
-  for = "/booking.html"
-  [headers.values]
-    Cache-Control = "no-store, max-age=0"
-    X-Robots-Tag = "noindex, nofollow, noarchive"
-
-[[headers]]
-  for = "/*.webmanifest"
-  [headers.values]
-    Cache-Control = "no-cache, max-age=0"
-
-[[headers]]
-  for = "/.netlify/functions/*"
-  [headers.values]
-    Cache-Control = "no-store"
-    X-Robots-Tag = "noindex, nofollow, noarchive"
+{
+  "name":"Северная звезда — ветеринарная клиника",
+  "short_name":"Северная звезда",
+  "start_url":"/",
+  "scope":"/",
+  "display":"standalone",
+  "background_color":"#f7fbf9",
+  "theme_color":"#f7fbf9",
+  "icons":[
+    {"src":"/icons/site-icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"/icons/site-icon-512.png","sizes":"512x512","type":"image/png"}
+  ]
+}

@@ -1,0 +1,29 @@
+СЕВЕРНАЯ ЗВЕЗДА — RECOVERY
+
+ЭТА СБОРКА ПРОВЕРЕНА. НЕ ЗАГРУЖАЙТЕ ЕЁ ЧЕРЕЗ GitHub -> Add file -> Upload files.
+
+НАДЁЖНЫЙ СПОСОБ:
+1. Откройте репозиторий chiba692/-severnaya-zvezda через GitHub Desktop.
+2. В локальной папке репозитория удалите старые файлы проекта (папку .git НЕ трогать).
+3. Скопируйте ВСЁ содержимое этой папки RECOVERY в корень локального репозитория.
+4. В GitHub Desktop: Commit to main -> Push origin.
+5. Netlify сам начнёт deploy.
+
+После копирования структура должна быть:
+index.html
+admin.html
+booking.html
+netlify.toml
+package.json
+site.webmanifest
+admin-manifest.webmanifest
+robots.txt
+sw.js
+icons/
+netlify/functions/
+scripts/
+supabase/
+
+НЕ переносите содержимое netlify/functions/ в корень.
+НЕ переименовывайте файлы.
+SQL повторно запускать не нужно, если FINAL-DIAMOND.sql уже был выполнен.

@@ -63,8 +63,8 @@ exports.handler=async event=>{
       if(ins.status===409||t.includes('23505'))return reply(409,{error:'Это время уже занято или такая заявка уже отправлена.'});
       throw Error(t);
     }
-    const row=(await ins.json())[0],when=inpatient?`${stay_start} — ${stay_end}`:`${booking_date} в ${booking_time}`;
-    const push=await sendPush({title:'🐾 Новая заявка — '+SERVICES[service],body:`${owner_name}: ${pet}, ${when}`,url:'/admin.html#notifications',badge:1});
+    const row=(await ins.json())[0],when=inpatient?`${stay_start} — ${stay_end}`:`${booking_date} в ${booking_time}`,visitName=(!inpatient&&type(booking_date)==='traumatologist')?'Приём травматолога':SERVICES[service];
+    const push=await sendPush({title:'🐾 Новая заявка — '+visitName,body:`${owner_name}: ${pet}, ${when}`,url:'/admin.html#notifications',badge:1});
     return reply(200,{ok:true,id:row?.id,token:public_token,status:'new',push});
   }catch(e){console.error(e);return reply(500,{error:'Не удалось отправить заявку. Попробуйте позже или позвоните в клинику.'})}
 };
