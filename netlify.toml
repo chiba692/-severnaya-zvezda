@@ -1,21 +1,33 @@
-{
-  "name": "Северная звезда — Администратор",
-  "short_name": "Сев. звезда",
-  "id": "/admin.html",
-  "start_url": "/admin.html",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#f3f8f5",
-  "theme_color": "#14221d",
-  "description": "Записи, расписание, стационар и клиенты ветеринарной клиники «Северная звезда»",
-  "icons": [
-    {"src":"/icons/admin-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"/icons/admin-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
-  ],
-  "shortcuts": [
-    {"name":"Сегодня","short_name":"Сегодня","url":"/admin.html#today"},
-    {"name":"В клинике","short_name":"В клинике","url":"/admin.html#clinic"},
-    {"name":"Новые заявки","short_name":"Новые","url":"/admin.html#notifications"}
-  ]
-}
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; manifest-src 'self'; worker-src 'self';"
+
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/booking.html"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
