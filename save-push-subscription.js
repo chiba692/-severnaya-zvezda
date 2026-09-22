@@ -1,36 +1,103 @@
-const crypto=require('crypto');
-const {env}=require('./_util');
+const {validate,type,dateInfo}=require('./_schedule');
+const {reply,env,isAdmin,clean,digits}=require('./_util');
+const SERVICES=['exam','ultrasound','xray','vaccination','tests','inpatient','other'];
+const STATUSES=['new','accepted','arrived','in_progress','completed','rejected','no_show','cancelled'];
 
-function bodyTooLarge(event,maxBytes=14000){return Buffer.byteLength(event.body||'','utf8')>maxBytes}
-function sameOrigin(event){
-  const h=event.headers||{};
-  const host=String(h['x-forwarded-host']||h['X-Forwarded-Host']||h.host||h.Host||'').toLowerCase().split(',')[0].trim().split(':')[0];
-  const source=h.origin||h.Origin||h.referer||h.Referer||'';
-  if(!source)return true; // mobile/PWA requests can legitimately omit Origin/Referer
-  if(!host)return false;
-  try{return new URL(source).hostname.toLowerCase()===host}catch{return false}
+function details(s,d){
+  d=d&&typeof d==='object'?d:{};
+  if(s==='vaccination')return{vaccine_type:clean(d.vaccine_type,30),last_vaccine_date:d.last_vaccine_date||null};
+  if(['ultrasound','xray'].includes(s))return{area:clean(d.area,120)};
+  if(s==='tests')return{test_type:clean(d.test_type,30)};
+  if(s==='inpatient')return{care:clean(d.care,500)};
+  if(s==='other')return{reason:clean(d.reason,200)};
+  return{};
 }
-function clientIp(event){
-  const h=event.headers||{};
-  return String(h['x-nf-client-connection-ip']||h['X-Nf-Client-Connection-Ip']||h['x-forwarded-for']||h['X-Forwarded-For']||h['client-ip']||h['Client-Ip']||'unknown').split(',')[0].trim().slice(0,120)
+function time5(v){return String(v||'').slice(0,5)}
+function whenText(row){
+  if(row.service==='inpatient')return`${row.stay_start||row.booking_date} — ${row.stay_end||'?'}`;
+  return`${row.booking_date} в ${time5(row.booking_time)}`;
 }
-function fingerprint(value){
-  const secret=process.env.RATE_LIMIT_SECRET||process.env.ADMIN_SESSION_SECRET;
-  if(!secret)throw new Error('RATE_LIMIT_SECRET or ADMIN_SESSION_SECRET is required');
-  return crypto.createHmac('sha256',secret).update(String(value||'unknown')).digest('hex')
-}
-async function consume(scope,rawKey,limit,windowSeconds){
-  const {url,headers}=env();
-  const r=await fetch(`${url}/rest/v1/rpc/consume_public_rate_limit`,{method:'POST',headers,body:JSON.stringify({p_scope:String(scope).slice(0,60),p_key_hash:fingerprint(rawKey),p_limit:Math.max(1,Math.min(100,Number(limit)||1)),p_window_seconds:Math.max(10,Math.min(86400,Number(windowSeconds)||60))})});
-  if(!r.ok)throw new Error(`Rate limit backend error ${r.status}: ${await r.text()}`);
-  return await r.json()===true
-}
-async function guardPublicPost(event,{scope='public',ipLimit=8,ipWindow=600,key=null,keyLimit=3,keyWindow=1800,maxBytes=14000}={}){
-  if(bodyTooLarge(event,maxBytes))return{ok:false,status:413,error:'Слишком большой запрос'};
-  if(!sameOrigin(event))return{ok:false,status:403,error:'Запрос отклонён защитой сайта'};
-  const ip=clientIp(event);
-  if(!(await consume(`${scope}:ip`,ip,ipLimit,ipWindow)))return{ok:false,status:429,error:'Слишком много запросов с этого устройства. Подождите немного и попробуйте снова.'};
-  if(key&&!(await consume(`${scope}:key`,key,keyLimit,keyWindow)))return{ok:false,status:429,error:'Слишком много заявок с этим номером. Проверьте «Мои записи» или позвоните в клинику.'};
-  return{ok:true}
-}
-module.exports={guardPublicPost,sameOrigin,bodyTooLarge,clientIp,fingerprint,consume};
+
+exports.handler=async event=>{
+  if(event.httpMethod!=='POST')return reply(405,{error:'Method not allowed'});
+  if(!isAdmin(event))return reply(401,{error:'Требуется авторизация'});
+  try{
+    const b=JSON.parse(event.body||'{}'),{url,headers}=env();
+    if(b.action==='delete'){
+      if(!b.id)return reply(400,{error:'Не указана заявка'});
+      const r=await fetch(`${url}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}`,{method:'DELETE',headers});
+      if(!r.ok)throw Error(await r.text());
+      return reply(200,{ok:true});
+    }
+    if(b.action==='status'){
+      if(!b.id||!STATUSES.includes(b.status))return reply(400,{error:'Некорректный статус'});
+      const patch={status:b.status,updated_at:new Date().toISOString()};
+      if(b.status==='arrived')patch.checked_in_at=new Date().toISOString();
+      if(b.status==='in_progress')patch.started_at=new Date().toISOString();
+      if(b.status==='completed')patch.completed_at=new Date().toISOString();
+      const r=await fetch(`${url}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify(patch)});
+      if(!r.ok)throw Error(await r.text());
+      return reply(200,{ok:true});
+    }
+    if(b.action==='note'){
+      if(!b.id)return reply(400,{error:'Не указана заявка'});
+      const r=await fetch(`${url}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({admin_note:clean(b.admin_note,1000)||null,updated_at:new Date().toISOString()})});
+      if(!r.ok)throw Error(await r.text());
+      return reply(200,{ok:true});
+    }
+    if(['create','edit'].includes(b.action)){
+      const owner_name=clean(b.owner_name,100),phone=clean(b.phone,40),phone_norm=digits(phone),pet=clean(b.pet,100),pet_species=clean(b.pet_species,20)||'other',pet_age=clean(b.pet_age,40),service=clean(b.service,30)||'exam',comment=clean(b.comment,700),admin_note=clean(b.admin_note,1000),service_details=details(service,b.service_details);
+      if(!owner_name||!phone||!pet||!SERVICES.includes(service))return reply(400,{error:'Заполните обязательные поля'});
+      if(phone_norm.length<10||phone_norm.length>15)return reply(400,{error:'Проверьте номер телефона'});
+
+      let oldRow=null;
+      if(b.action==='edit'){
+        if(!b.id)return reply(400,{error:'Не указана заявка'});
+        const oldR=await fetch(`${url}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}&select=*&limit=1`,{headers});
+        if(!oldR.ok)throw Error(await oldR.text());
+        oldRow=(await oldR.json())[0];
+        if(!oldRow)return reply(404,{error:'Заявка не найдена'});
+      }
+
+      let booking_date=String(b.booking_date||''),booking_time=String(b.booking_time||''),stay_start=b.stay_start?String(b.stay_start):null,stay_end=b.stay_end?String(b.stay_end):null;
+      const inpatient=service==='inpatient';
+      if(inpatient){
+        if(!dateInfo(stay_start)||!dateInfo(stay_end)||stay_end<stay_start)return reply(400,{error:'Проверьте даты стационара'});
+        booking_date=stay_start;booking_time='00:00';
+      }else{
+        const err=validate(booking_date,booking_time,true);if(err)return reply(400,{error:err});
+        const qr=await fetch(`${url}/rest/v1/bookings?booking_date=eq.${encodeURIComponent(booking_date)}&booking_time=eq.${encodeURIComponent(booking_time)}&select=id,status`,{headers});
+        if(!qr.ok)throw Error(await qr.text());
+        const conflicts=(await qr.json()).filter(x=>String(x.id)!==String(b.id||'')&&!['rejected','cancelled'].includes(x.status));
+        if(conflicts.length)return reply(409,{error:'Это время уже занято'});
+      }
+
+      const payload={owner_name,phone,phone_norm,pet,pet_species,pet_age:pet_age||null,booking_date,booking_time,comment:comment||null,admin_note:admin_note||null,booking_type:type(booking_date),service,service_details,stay_start:inpatient?stay_start:null,stay_end:inpatient?stay_end:null,updated_at:new Date().toISOString()};
+
+      if(oldRow){
+        const oldWhen=whenText(oldRow),newWhen=whenText(payload);
+        if(oldWhen!==newWhen){
+          payload.previous_booking_date=oldRow.booking_date||null;
+          payload.previous_booking_time=oldRow.service==='inpatient'?null:time5(oldRow.booking_time)||null;
+          payload.client_notice=`Клиника изменила время записи. Было: ${oldWhen}. Теперь: ${newWhen}.`;
+          payload.client_notice_at=new Date().toISOString();
+        }
+      }
+
+      let r;
+      if(b.action==='create'){
+        payload.status='accepted';
+        r=await fetch(`${url}/rest/v1/bookings`,{method:'POST',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify(payload)});
+      }else{
+        r=await fetch(`${url}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify(payload)});
+      }
+      if(!r.ok){
+        const t=await r.text();
+        if(r.status===409||t.includes('23505'))return reply(409,{error:'Это время уже занято'});
+        throw Error(t);
+      }
+      return reply(200,{ok:true,schedule_changed:!!payload.client_notice});
+    }
+    return reply(400,{error:'Неизвестное действие'});
+  }catch(e){console.error(e);return reply(500,{error:'Не удалось изменить заявку'})}
+};

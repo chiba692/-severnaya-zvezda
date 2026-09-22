@@ -1,9 +1,2 @@
-const crypto=require('crypto');
-function verifySession(event){
-  const cookies=event.headers.cookie||event.headers.Cookie||'',m=cookies.match(/(?:^|;\s*)admin_session=([^;]+)/);if(!m)return false;
-  const [p,s]=m[1].split('.'),secret=process.env.ADMIN_SESSION_SECRET;if(!p||!s||!secret)return false;
-  const ex=crypto.createHmac('sha256',secret).update(p).digest('base64url');
-  if(s.length!==ex.length||!crypto.timingSafeEqual(Buffer.from(s),Buffer.from(ex)))return false;
-  try{const x=JSON.parse(Buffer.from(p,'base64url').toString('utf8'));return x.role==='admin'&&x.exp>Date.now()}catch{return false}
-}
-module.exports={verifySession};
+const {S,mins,dateInfo,now,today,type}=require('./_schedule');const {reply,env}=require('./_util');
+exports.handler=async event=>{if(event.httpMethod!=='GET')return reply(405,{error:'Method not allowed'});try{const date=(event.queryStringParameters||{}).date,di=dateInfo(date);if(!di)return reply(400,{error:'Некорректная дата'});const td=today(),bt=type(date);if(date<td)return reply(200,{date,type:bt,slots:[]});const sch=S[di.x.getUTCDay()];if(!sch)return reply(200,{date,type:bt,slots:[]});const {url,headers}=env();const r=await fetch(`${url}/rest/v1/bookings?booking_date=eq.${encodeURIComponent(date)}&service=neq.inpatient&select=booking_time,status`,{headers});if(!r.ok)throw Error(await r.text());const busy=new Set((await r.json()).filter(x=>!['rejected','cancelled'].includes(x.status)).map(x=>String(x.booking_time).slice(0,5)));let slots=[];for(let m=mins(sch[0]);m<mins(sch[1]);m+=20){const t=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');if(!busy.has(t))slots.push(t)}if(date===td){const n=now(),cur=n.getHours()*60+n.getMinutes();slots=slots.filter(t=>mins(t)>cur)}return reply(200,{date,type:bt,slots})}catch(e){console.error(e);return reply(500,{error:'Ошибка расписания'})}};
