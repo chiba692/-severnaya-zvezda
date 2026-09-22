@@ -3,12 +3,12 @@ const {reply,env,clean}=require('./_util');
 const {sendPush}=require('./_push');
 const {guardPublicPost}=require('./_public-guard');
 
-function safe(row,reviewSubmitted=false){
+function safe(row){
   return{
     id:row.id,owner_name:row.owner_name,pet:row.pet,pet_species:row.pet_species,pet_age:row.pet_age,
     booking_date:row.booking_date,booking_time:String(row.booking_time||'').slice(0,5),booking_type:row.booking_type,
     status:row.status,service:row.service,service_details:row.service_details||{},stay_start:row.stay_start,stay_end:row.stay_end,
-    comment:row.comment,created_at:row.created_at,updated_at:row.updated_at,review_submitted:reviewSubmitted,
+    comment:row.comment,created_at:row.created_at,updated_at:row.updated_at,
     client_notice:row.client_notice||null,client_notice_at:row.client_notice_at||null,
     previous_booking_date:row.previous_booking_date||null,
     previous_booking_time:row.previous_booking_time?String(row.previous_booking_time).slice(0,5):null
@@ -24,12 +24,7 @@ exports.handler=async event=>{
       if(!r.ok)throw Error(await r.text());
       const row=(await r.json())[0];
       if(!row)return reply(404,{error:'Заявка не найдена'});
-      let reviewSubmitted=false;
-      if(row.status==='completed'){
-        const rr=await fetch(`${url}/rest/v1/reviews?booking_id=eq.${row.id}&select=id&limit=1`,{headers});
-        if(rr.ok)reviewSubmitted=(await rr.json()).length>0;
-      }
-      return reply(200,{booking:safe(row,reviewSubmitted)});
+      return reply(200,{booking:safe(row)});
     }
 
     if(event.httpMethod==='POST'){
