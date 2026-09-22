@@ -1,5 +1,6 @@
-User-agent: *
-Allow: /
-Disallow: /admin.html
-Disallow: /booking.html
-Disallow: /.netlify/functions/
+{
+  "private": true,
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

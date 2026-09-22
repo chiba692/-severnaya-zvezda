@@ -1,7 +1,5 @@
-const CACHE='sz-admin-final-1';
-const SHELL=['/admin.html','/admin-manifest.webmanifest','/icons/admin-icon-192.png','/icons/admin-icon-512.png'];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));self.skipWaiting()});
-self.addEventListener('activate',event=>event.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
-self.addEventListener('fetch',event=>{const u=new URL(event.request.url);if(event.request.method!=='GET'||u.origin!==location.origin||u.pathname.startsWith('/.netlify/functions/'))return;if(u.pathname==='/admin.html'||u.pathname==='/admin-manifest.webmanifest'||u.pathname.startsWith('/icons/'))event.respondWith(fetch(event.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(event.request,c));return r}).catch(()=>caches.match(event.request)))});
-self.addEventListener('push',event=>{let d={};try{d=event.data?event.data.json():{}}catch{}const promise=(async()=>{if(self.registration.setAppBadge){try{await self.registration.setAppBadge(d.badge||1)}catch{}}await self.registration.showNotification(d.title||'Северная звезда',{body:d.body||'Новая заявка в клинике',icon:'/icons/admin-icon-192.png',badge:'/icons/admin-icon-192.png',tag:'sz-'+Date.now(),renotify:true,vibrate:[150,80,150],data:{url:d.url||'/admin.html#notifications'}})})();event.waitUntil(promise)});
-self.addEventListener('notificationclick',event=>{event.notification.close();const url=(event.notification.data&&event.notification.data.url)||'/admin.html#notifications';event.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{for(const c of list){if('focus'in c){c.navigate(url);return c.focus()}}return clients.openWindow(url)}))});
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /booking.html
+Disallow: /.netlify/functions/
