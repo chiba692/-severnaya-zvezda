@@ -1,1 +1,2 @@
-const {reply}=require('./_util');exports.handler=async()=>{const publicKey=process.env.VAPID_PUBLIC_KEY;return publicKey?reply(200,{publicKey}):reply(500,{error:'VAPID public key is missing'})};
+const {reply,requireAdmin}=require('./_util');
+exports.handler=async event=>{if(event.httpMethod!=='GET')return reply(405,{error:'Method not allowed'});const a=requireAdmin(event);if(!a.ok)return reply(a.status,{error:a.error});const key=process.env.VAPID_PUBLIC_KEY;if(!key)return reply(503,{error:'Push-уведомления ещё не настроены'});return reply(200,{publicKey:key})};

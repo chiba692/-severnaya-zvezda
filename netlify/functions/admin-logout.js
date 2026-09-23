@@ -1,1 +1,2 @@
-exports.handler=async event=>({statusCode:event.httpMethod==='POST'?200:405,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Set-Cookie':'admin_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0'},body:JSON.stringify(event.httpMethod==='POST'?{ok:true}:{error:'Method not allowed'})});
+const {reply}=require('./_util');
+exports.handler=async event=>{if(event.httpMethod!=='POST')return reply(405,{error:'Method not allowed'});return reply(200,{ok:true},{'Set-Cookie':'admin_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0'})};

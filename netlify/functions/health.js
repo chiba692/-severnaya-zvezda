@@ -1,0 +1,2 @@
+const {reply,env}=require('./_util');
+exports.handler=async event=>{if(event.httpMethod!=='GET')return reply(405,{error:'Method not allowed'});const started=Date.now();try{const {url,headers}=env();const r=await fetch(`${url}/rest/v1/clinic_services?select=service_key&limit=1`,{headers});if(!r.ok)throw Error(`db ${r.status}`);return reply(200,{ok:true,netlify:true,database:true,latency_ms:Date.now()-started,time:new Date().toISOString()})}catch(e){console.error('health',e);return reply(503,{ok:false,netlify:true,database:false,time:new Date().toISOString()})}};

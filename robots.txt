@@ -3,3 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /booking.html
 Disallow: /.netlify/functions/
+Sitemap: https://zevzvezda.netlify.app/sitemap.xml

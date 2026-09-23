@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "validate": "node scripts/validate-project.js"
+    "validate": "node scripts/validate-project.js && node scripts/test-core.js"
   },
   "dependencies": {
     "web-push": "^3.6.7"
