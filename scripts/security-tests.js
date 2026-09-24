@@ -129,5 +129,14 @@ const manage=require('../netlify/functions/manage-booking');
   for(const directive of ["default-src 'self'","object-src 'none'","frame-ancestors 'none'","base-uri 'self'","form-action 'self'"])
     assert.ok(toml.includes(directive),`CSP missing ${directive}`);
 
-  console.log('[SECURITY] hardened auth, CSRF, token, XSS, input, storage, SQL/RLS and abuse checks passed');
+  
+// UX/security regression: user-controlled catalog data must stay escaped and old fake test taxonomy must not return.
+{
+  const index=read('index.html');
+  assert(!/id="testsBox"|id="testType"/.test(index),'old generic tests dropdown must stay removed');
+  assert(/function esc\(s\)/.test(index),'catalog rendering must keep HTML escaping');
+  assert(/data-picker-item/.test(index),'service picker item selection must use data attributes');
+}
+
+console.log('[SECURITY] hardened auth, CSRF, token, XSS, input, storage, SQL/RLS and abuse checks passed');
 })().catch(e=>{console.error(e);process.exit(1)});

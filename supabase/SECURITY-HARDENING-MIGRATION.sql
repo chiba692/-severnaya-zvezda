@@ -462,3 +462,78 @@ alter default privileges in schema public revoke execute on functions from anon,
 grant execute on function public.consume_public_rate_limit(text,text,integer,integer) to service_role;
 
 -- Никаких данных клиентов/записей этот скрипт не удаляет.
+
+
+-- ================================================================
+-- CLIENT UX v5 — удобная навигация по большому прайсу.
+-- Идемпотентно: можно запускать поверх SECURITY-HARDENING-MIGRATION.
+-- ================================================================
+
+-- Разбиваем старый огромный раздел «Общие услуги» на понятные клиенту категории.
+update public.clinic_price_items
+set category='Приём и документы', category_order=10, updated_at=now()
+where item_key in ('general-001','general-002','general-003','general-004','general-005','general-006','general-047');
+
+update public.clinic_price_items
+set category='Анализы и лаборатория', category_order=20, booking_service='tests', updated_at=now()
+where item_key in ('general-007','general-008','general-009','general-010','general-011','general-012','general-013','general-014');
+
+update public.clinic_price_items
+set category='Процедуры и уход', category_order=30, updated_at=now()
+where item_key in (
+  'general-015','general-016','general-017','general-018','general-019','general-020',
+  'general-021','general-022','general-023','general-024','general-025','general-026',
+  'general-027','general-028','general-029','general-030','general-031','general-032',
+  'general-033','general-034','general-036','general-037','general-038','general-039','general-044'
+);
+
+update public.clinic_price_items
+set category='Вакцинация', category_order=40, booking_service='vaccination', updated_at=now()
+where item_key='general-048' or item_key like 'vaccination-%';
+
+update public.clinic_price_items
+set category='УЗИ', category_order=50, booking_service='ultrasound', updated_at=now()
+where item_key='general-035' or item_key like 'ultrasound-%';
+
+update public.clinic_price_items
+set category='Рентген', category_order=60, booking_service='xray', updated_at=now()
+where item_key like 'xray-%';
+
+update public.clinic_price_items
+set category='Хирургия', category_order=70, booking_service='surgery', updated_at=now()
+where item_key='general-051' or (item_key like 'surgery-%' and item_key not in ('surgery-025','surgery-026'));
+
+update public.clinic_price_items
+set category='Стоматология', category_order=80, booking_service='dentistry', updated_at=now()
+where item_key in ('surgery-025','surgery-026');
+
+update public.clinic_price_items
+set category='Выезд и транспорт', category_order=90, booking_service='other', updated_at=now()
+where item_key in ('general-040','general-041','general-042','general-049');
+
+update public.clinic_price_items
+set category='Эвтаназия и утилизация', category_order=100, booking_service='other', updated_at=now()
+where item_key in ('general-043','general-045','general-046','general-050');
+
+update public.clinic_price_items
+set category='Сельскохозяйственные животные', category_order=110, booking_service='farm', updated_at=now()
+where item_key like 'farm-%';
+
+update public.clinic_price_items
+set category='Особые условия', category_order=120, booking_service='other', updated_at=now()
+where item_key='general-052';
+
+-- Основные направления остаются компактными; вместо «по прайсу» показываем честный переход к ценам.
+update public.clinic_services set
+  name='Приём и консультация',
+  price_label='первичный приём 850 ₽',
+  description='Приём врача, консультация и первичная оценка состояния.',
+  updated_at=now()
+where service_key='exam';
+
+update public.clinic_services set price_label='смотреть цены', updated_at=now()
+where service_key in ('tests','surgery','dentistry','farm');
+
+-- В форме записи анализы выбираются из реальных позиций прайса:
+-- «Клинический анализ крови», «Биохимический анализ крови» и т. д.
+-- Никакого искусственного пункта «Общие анализы» больше нет.
