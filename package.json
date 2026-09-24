@@ -1,9 +1,12 @@
 {
   "private": true,
   "scripts": {
-    "validate": "node scripts/validate-project.js && node scripts/test-core.js"
+    "validate": "node scripts/validate-project.js && node scripts/test-core.js && node scripts/security-tests.js"
   },
   "dependencies": {
-    "web-push": "^3.6.7"
+    "web-push": "3.6.7"
+  },
+  "engines": {
+    "node": ">=20 <25"
   }
 }

@@ -1,10 +1,6 @@
-const {reply}=require('./_util');const {today,type,addDays,nextFirstSaturday}=require('./_schedule');const {slotsFor}=require('./_availability');
-exports.handler=async event=>{
-  if(event.httpMethod!=='GET')return reply(405,{error:'Method not allowed'});
-  try{
-    const start=today();let next=null;
-    for(let i=0;i<=30;i++){const date=addDays(start,i),slots=await slotsFor(date);if(slots.length){next={date,time:slots[0],type:type(date)};break}}
-    const td=nextFirstSaturday(start),ts=td?await slotsFor(td):[];
-    return reply(200,{next,traumatologist:td?{date:td,slots:ts.length,first_time:ts[0]||null}:null});
-  }catch(e){console.error(e);return reply(500,{error:'Не удалось загрузить ближайшее время'})}
-};
+const {reply,env}=require('./_util');
+const {today,type,addDays,nextFirstSaturday,generateSlots,mins,now}=require('./_schedule');
+const {guardPublicGet}=require('./_public-guard');
+const time5=v=>String(v||'').slice(0,5);
+function blocked(block,time){if(!block.start_time&&!block.end_time)return true;const t=mins(time),a=mins(time5(block.start_time)),b=mins(time5(block.end_time));return t!==null&&a!==null&&b!==null&&t>=a&&t<b}
+exports.handler=async event=>{if(event.httpMethod!=='GET')return reply(405,{error:'Method not allowed'});try{const g=await guardPublicGet(event,{scope:'availability-summary',limit:60,window:600});if(!g.ok)return reply(g.status,{error:g.error});const start=today(),end=addDays(start,30),{url,headers}=env();const [br,sr]=await Promise.all([fetch(`${url}/rest/v1/bookings?booking_date=gte.${start}&booking_date=lte.${end}&archived_at=is.null&select=booking_date,booking_time,status`,{headers}),fetch(`${url}/rest/v1/schedule_blocks?block_date=gte.${start}&block_date=lte.${end}&select=block_date,start_time,end_time`,{headers})]);if(!br.ok||!sr.ok)throw Error('availability backend');const bookings=await br.json(),blocks=await sr.json(),busy=new Map(),blockedByDate=new Map();for(const b of bookings){if(['rejected','cancelled'].includes(b.status))continue;if(!busy.has(b.booking_date))busy.set(b.booking_date,new Set());busy.get(b.booking_date).add(time5(b.booking_time))}for(const b of blocks){if(!blockedByDate.has(b.block_date))blockedByDate.set(b.block_date,[]);blockedByDate.get(b.block_date).push(b)}function free(date){let slots=generateSlots(date).filter(t=>!(busy.get(date)?.has(t))&&!(blockedByDate.get(date)||[]).some(b=>blocked(b,t)));if(date===start){const n=now(),cur=n.getHours()*60+n.getMinutes();slots=slots.filter(t=>mins(t)>cur)}return slots}let next=null;for(let i=0;i<=30;i++){const date=addDays(start,i),slots=free(date);if(slots.length){next={date,time:slots[0],type:type(date)};break}}const td=nextFirstSaturday(start),ts=td&&td<=end?free(td):[];return reply(200,{next,traumatologist:td?{date:td,slots:ts.length,first_time:ts[0]||null}:null})}catch(e){console.error('availability-summary',e?.message||e);return reply(500,{error:'Не удалось загрузить ближайшее время'})}};
