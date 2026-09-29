@@ -56,7 +56,7 @@ alter table public.bookings add column if not exists client_notice_reason text;
 
 alter table public.bookings drop constraint if exists bookings_service_check;
 
-alter table public.bookings add constraint bookings_service_check check(service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','other','inpatient','farm'));
+alter table public.bookings add constraint bookings_service_check check(service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','other','inpatient'));
 
 delete from public.clinic_services where service_key='inpatient';
 

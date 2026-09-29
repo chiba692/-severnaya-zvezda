@@ -33,6 +33,7 @@ const ROUTES={
   'health': health.handler,
   'manage-booking': manage_booking.handler,
   'price-items': price_items.handler,
+  'prices': price_items.handler, // compatibility alias
   'public-booking': public_booking.handler,
   'push-test': push_test.handler,
   'save-push-subscription': save_push_subscription.handler,

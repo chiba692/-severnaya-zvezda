@@ -138,5 +138,9 @@ const manage=require('../src/functions/manage-booking');
   assert(/data-picker-item/.test(index),'service picker item selection must use data attributes');
 }
 
+
+assert(!/bookings_service_check[\s\S]{0,300}['\"]farm['\"]/.test(sql),'farm must not remain in bookings service whitelist');
+assert(!/clinic_services_key_check[\s\S]{0,300}['\"]farm['\"]/.test(sql),'farm must not remain in clinic services whitelist');
+assert(!/clinic_price_items_booking_service_check[\s\S]{0,300}['\"]farm['\"]/.test(sql),'farm must not remain in price item whitelist');
 console.log('[SECURITY] hardened auth, CSRF, token, XSS, input, storage, SQL/RLS and abuse checks passed');
 })().catch(e=>{console.error(e);process.exit(1)});
