@@ -1,7 +1,8 @@
--- Северная звезда — SECURITY HARDENING v4
--- ЕДИНАЯ идемпотентная миграция для текущей production-базы.
--- Включает: полный прайс, 30-минутный травматолог, admin-comfort schema и защиту БД.
--- Можно выполнить повторно: данные записей не удаляются.
+-- Северная звезда — FINAL MIGRATION v9
+-- ЕДИНАЯ кумулятивная идемпотентная миграция.
+-- Включает полный прайс без сельскохозяйственного направления, 30-минутного травматолога,
+-- admin-comfort schema, RLS/security hardening и совместимость с предыдущими версиями.
+-- Можно выполнять повторно: клиентские записи не удаляются.
 
 create extension if not exists pgcrypto;
 
@@ -40,6 +41,9 @@ create table if not exists public.booking_audit(
 );
 create index if not exists booking_audit_booking_idx on public.booking_audit(booking_id,created_at desc);
 
+-- Удаляем устаревшее сельскохозяйственное направление из каталога, если оно осталось от старой версии.
+delete from public.clinic_services where service_key='farm';
+
 -- В старой БД whitelist clinic_services не знал о новых направлениях.
 alter table public.clinic_services drop constraint if exists clinic_services_key_check;
 alter table public.clinic_services add constraint clinic_services_key_check
@@ -52,7 +56,7 @@ alter table public.bookings add column if not exists client_notice_reason text;
 
 alter table public.bookings drop constraint if exists bookings_service_check;
 
-alter table public.bookings add constraint bookings_service_check check(service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','other','inpatient'));
+alter table public.bookings add constraint bookings_service_check check(service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','other','inpatient','farm'));
 
 delete from public.clinic_services where service_key='inpatient';
 
@@ -207,6 +211,14 @@ insert into public.clinic_price_items(item_key,category,name,price_label,booking
 ('ultrasound-004','УЗИ','УЗИ брюшной полости обзорное','1 500 ₽','ultrasound',60,40,true),
 ('ultrasound-005','УЗИ','УЗИ половой системы','900 ₽','ultrasound',60,50,true)
 on conflict(item_key) do update set category=excluded.category,name=excluded.name,price_label=excluded.price_label,booking_service=excluded.booking_service,category_order=excluded.category_order,sort_order=excluded.sort_order,enabled=excluded.enabled,updated_at=now();
+
+-- Если база когда-либо содержала сельскохозяйственный прайс, удаляем его из актуального каталога.
+delete from public.clinic_price_items where booking_service='farm' or item_key like 'farm-%';
+
+-- В общей услуге забора крови оставляем только домашних животных из актуального прайса.
+update public.clinic_price_items
+set price_label='кошки — 400 ₽; собаки — 450 ₽; хорьки — 500 ₽', updated_at=now()
+where item_key='general-007';
 
 delete from public.clinic_price_items where item_key like any(array['general-%','vaccination-%','surgery-%','xray-%','ultrasound-%']) and item_key not in ('general-001','general-002','general-003','general-004','general-005','general-006','general-007','general-008','general-009','general-010','general-011','general-012','general-013','general-014','general-015','general-016','general-017','general-018','general-019','general-020','general-021','general-022','general-023','general-024','general-025','general-026','general-027','general-028','general-029','general-030','general-031','general-032','general-033','general-034','general-035','general-036','general-037','general-038','general-039','general-040','general-041','general-042','general-043','general-044','general-045','general-046','general-047','general-048','general-049','general-050','general-051','general-052','vaccination-001','vaccination-002','vaccination-003','vaccination-004','vaccination-005','vaccination-006','vaccination-007','vaccination-008','vaccination-009','vaccination-010','vaccination-011','vaccination-012','vaccination-013','vaccination-014','vaccination-015','surgery-001','surgery-002','surgery-003','surgery-004','surgery-005','surgery-006','surgery-007','surgery-008','surgery-009','surgery-010','surgery-011','surgery-012','surgery-013','surgery-014','surgery-015','surgery-016','surgery-017','surgery-018','surgery-019','surgery-020','surgery-021','surgery-022','surgery-023','surgery-024','surgery-025','surgery-026','surgery-027','surgery-028','surgery-029','surgery-030','surgery-031','surgery-032','surgery-033','surgery-034','surgery-035','surgery-036','surgery-037','surgery-038','xray-001','xray-002','xray-003','xray-004','xray-005','xray-006','ultrasound-001','ultrasound-002','ultrasound-003','ultrasound-004','ultrasound-005');
 

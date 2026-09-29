@@ -1,4 +1,4 @@
-const CACHE='sz-admin-cloudflare-v8-20260927-1';
+const CACHE='sz-admin-cloudflare-final-v9-20260929-1';
 const SHELL=['/admin.html','/admin-manifest.webmanifest','/icons/admin-icon-192.png','/icons/admin-icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));self.skipWaiting()});
 self.addEventListener('activate',event=>event.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));

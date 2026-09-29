@@ -1,37 +1,40 @@
-# Северная звезда — Cloudflare Workers v8
+# Северная звезда — CLOUDFLARE FINAL v9
 
-Финальная Cloudflare-сборка: Worker API + Static Assets + существующий Supabase. Netlify не используется.
+Это единая финальная сборка. Предыдущие v7.1, v8 и v8.1 НЕ НУЖНО ставить по очереди.
 
-## Что внутри
-- `src/worker.mjs` — единый API Worker (`/api/*`).
-- `public/` — клиентский сайт, админка, прайс, PWA и иконки.
-- `supabase/SECURITY-HARDENING-MIGRATION.sql` — актуальная резервная схема; для самого перехода на v8 новый SQL не нужен, если security migration уже была выполнена.
-- Улучшенный каталог услуг: основные карточки с быстрыми вариантами, двухшаговый выбор услуги в форме, логичные разделы полного прайса.
-- 20 минут для обычной записи, 30 минут в первую субботу для травматолога.
-- Админка показывает Cloudflare Worker + Supabase в разделе «Система».
+## Что уже включено
+- Cloudflare Worker + Static Assets, Netlify runtime отсутствует.
+- Worker name: `severnaya-zvezda`.
+- `main`: `./src/worker.mjs`.
+- Static assets: только `./public` — `node_modules` не может попасть в assets.
+- 116 актуальных позиций прайса, без сельскохозяйственного направления.
+- Основные карточки услуг + единый удобный выбор конкретной услуги в форме.
+- Полный прайс отдельной страницей, с поиском и логичными разделами.
+- Обычная запись — 20 минут; травматолог в первую субботу — 30 минут.
+- Админка, Push/PWA, приватные ссылки, перенос/отмена, security hardening.
 
-## Переменные Cloudflare
-Обязательные secrets/vars:
-`SUPABASE_URL`
-`SUPABASE_SECRET_KEY`
-`ADMIN_LOGIN`
-`ADMIN_PASSWORD` (минимум 12 символов)
-`ADMIN_SESSION_SECRET` (минимум 32 случайных символа)
-`RATE_LIMIT_SECRET`
-`VAPID_PUBLIC_KEY`
-`VAPID_PRIVATE_KEY`
-`VAPID_SUBJECT`
+## Один SQL
+В `supabase/FINAL-MIGRATION.sql` лежит одна кумулятивная идемпотентная миграция.
+Она заменяет старые PRICE / ADMIN-COMFORT / SECURITY / REMOVE-FARM миграции.
+Запускать старые SQL отдельно не нужно.
 
-После первого успешного deploy добавьте `SITE_URL=https://severnaya-zvezda.<ваш-subdomain>.workers.dev` и сделайте redeploy.
+## Cloudflare variables/secrets
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `ADMIN_LOGIN`
+- `ADMIN_PASSWORD` — минимум 12 символов
+- `ADMIN_SESSION_SECRET` — минимум 32 случайных символа
+- `RATE_LIMIT_SECRET`
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT`
+- после первого успешного deploy: `SITE_URL=https://severnaya-zvezda.<ваш-subdomain>.workers.dev`
 
-## Деплой из GitHub
-1. Содержимое архива положить прямо в корень репозитория, старые Netlify-файлы удалить.
+## Деплой
+1. Полностью заменить содержимое рабочего GitHub-репозитория содержимым этого архива. Старые Netlify-файлы удалить.
 2. GitHub Desktop: Commit → Push.
-3. Cloudflare Workers Builds: Build command `npm run validate`, Deploy command `npx wrangler deploy`.
-4. Убедиться, что лог видит `wrangler.jsonc`, `main: ./src/worker.mjs`, assets `./public`. Wrangler НЕ должен создавать конфиг сам и НЕ должен использовать Output Directory `.`.
-5. После Success открыть `/`, `/admin.html` и `/api/health`.
+3. Cloudflare build command: `npm run validate`; deploy command: `npx wrangler deploy`.
+4. В логе Wrangler ДОЛЖЕН увидеть существующий `wrangler.jsonc`; он не должен создавать новый конфиг. Assets должны быть `./public`, а не `.`.
+5. После успешного deploy выполнить `supabase/FINAL-MIGRATION.sql` в Supabase SQL Editor.
 
-## Локальная проверка
-`npm ci`
-`npm run validate`
-`npm run dev`
+После deploy проверить `/`, `/prices.html`, `/admin.html`, `/api/health`.

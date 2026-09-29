@@ -1,3 +1,0 @@
-const {env,clean,positiveInt}=require('./_util');
-async function audit(booking_id,actor,action,details={}){try{const id=positiveInt(booking_id);if(!id)return false;const {url,headers}=env(),safe={};for(const [k,v] of Object.entries(details||{})){if(['phone','admin_note','comment','public_token','request_id'].includes(k))continue;safe[k]=typeof v==='string'?clean(v,300):v}const who=['client','admin','system'].includes(actor)?actor:'system',r=await fetch(`${url}/rest/v1/booking_audit`,{method:'POST',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({booking_id:id,actor:who,action:clean(action,80),details:safe})});return r.ok}catch(e){console.error('Audit error',e?.message||e);return false}}
-module.exports={audit};

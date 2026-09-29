@@ -1,7 +1,7 @@
 const fs=require('fs');
 const assert=require('assert');
 
-const sql=fs.readFileSync('supabase/SECURITY-HARDENING-MIGRATION.sql','utf8');
+const sql=fs.readFileSync('supabase/FINAL-MIGRATION.sql','utf8');
 const index=fs.readFileSync('public/index.html','utf8');
 const prices=fs.readFileSync('public/prices.html','utf8');
 

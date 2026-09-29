@@ -96,7 +96,7 @@ const manage=require('../src/functions/manage-booking');
   }
 
   // SQL hardening is part of the single migration.
-  const sql=read('supabase/SECURITY-HARDENING-MIGRATION.sql');
+  const sql=read('supabase/FINAL-MIGRATION.sql');
   for(const needle of [
     'revoke all on public.bookings from anon,authenticated',
     'create policy deny_direct_access on public.bookings',
