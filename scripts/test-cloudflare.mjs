@@ -1,0 +1,5 @@
+import assert from 'node:assert/strict';import {requestToEvent,resultToResponse} from '../src/adapter.mjs';
+const req=new Request('https://vet.example/api/health?x=1',{method:'POST',headers:{'content-type':'application/json','user-agent':'TestUA','cf-connecting-ip':'203.0.113.7'},body:'{"ok":true}'});
+const e=await requestToEvent(req);assert.equal(e.httpMethod,'POST');assert.equal(e.headers.host,'vet.example');assert.equal(e.headers['x-nf-client-connection-ip'],'203.0.113.7');assert.equal(e.queryStringParameters.x,'1');assert.equal(e.body,'{"ok":true}');
+const r=resultToResponse({statusCode:201,headers:{'Content-Type':'application/json','Set-Cookie':'a=b; Secure'},body:'{"ok":true}'});assert.equal(r.status,201);assert.equal(r.headers.get('set-cookie'),'a=b; Secure');assert.equal(r.headers.get('cache-control'),'no-store');
+console.log('[CLOUDFLARE] Request/Response adapter tests passed');

@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "severnaya-zvezda",
+  "main": "./src/worker.mjs",
+  "compatibility_date": "2026-09-27",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "vars": {
+    "APP_VERSION": "cloudflare-v8.0",
+    "ADMIN_SESSION_VERSION": "1"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

@@ -10,14 +10,14 @@ process.env.ADMIN_LOGIN='security-admin';
 process.env.ADMIN_PASSWORD='A'.repeat(20)+'1!';
 process.env.RATE_LIMIT_SECRET='r'.repeat(64);
 
-const util=require('../netlify/functions/_util');
-const auth=require('../netlify/functions/_auth');
+const util=require('../src/functions/_util');
+const auth=require('../src/functions/_auth');
 // Local validator intentionally does not install dependencies; stub web-push only for module loading.
 const Module=require('module'),originalLoad=Module._load;
 Module._load=function(request,parent,isMain){if(request==='web-push')return{setVapidDetails(){},async sendNotification(){return true}};return originalLoad.apply(this,arguments)};
-const publicBooking=require('../netlify/functions/public-booking');
+const publicBooking=require('../src/functions/public-booking');
 Module._load=originalLoad;
-const manage=require('../netlify/functions/manage-booking');
+const manage=require('../src/functions/manage-booking');
 
 (async()=>{
   // Input parser: SQL-like text remains data; requests are size/type/JSON validated.
@@ -57,7 +57,7 @@ const manage=require('../netlify/functions/manage-booking');
   assert.strictEqual(auth.getSession({headers:{cookie:`${auth.COOKIE}=${sess.token}`,'user-agent':'DifferentAgent'}}),null);
 
   // Client files must never contain server secret variables or server env access.
-  const publicFiles=['index.html','admin.html','booking.html','prices.html','privacy.html','404.html','sw.js','site.webmanifest','admin-manifest.webmanifest'];
+  const publicFiles=['public/index.html','public/admin.html','public/booking.html','public/prices.html','public/privacy.html','public/404.html','public/sw.js','public/site.webmanifest','public/admin-manifest.webmanifest'];
   const secretNames=['SUPABASE_SECRET_KEY','VAPID_PRIVATE_KEY','ADMIN_PASSWORD','ADMIN_SESSION_SECRET','RATE_LIMIT_SECRET'];
   for(const f of publicFiles){
     const s=read(f);
@@ -68,27 +68,27 @@ const manage=require('../netlify/functions/manage-booking');
   }
 
   // Known stored-XSS sink is forbidden: user-controlled pet/phone inside inline JS attribute.
-  const admin=read('admin.html');
+  const admin=read('public/admin.html');
   assert.ok(!/onclick=["'][^"']*quickFromPet\s*\(\s*["']\$\{/i.test(admin));
   assert.ok(/class="btn ghost petQuick"/.test(admin),'safe petQuick data-button missing');
   assert.ok(/\$\$\('\.petQuick'\).*dataset\.phone/s.test(admin),'petQuick listener missing');
   assert.ok(!/public_token\s*:\s*b\.public_token/.test(admin),'admin offline cache stores public bearer token');
 
   // New private links use URL fragment, so bearer token is not sent with the static page request.
-  const index=read('index.html'),booking=read('booking.html');
+  const index=read('public/index.html'),booking=read('public/booking.html');
   assert.ok(index.includes("/booking.html#t="));
   assert.ok(admin.includes("/booking.html#t="));
   assert.ok(booking.includes("/booking.html#t="));
   assert.ok(/action:'read',token/.test(index));
   assert.ok(/action:'read',token/.test(booking));
 
-  // Service worker must never cache Netlify Functions or navigate Push to arbitrary URLs.
-  const sw=read('sw.js');
-  assert.ok(sw.includes("u.pathname.startsWith('/.netlify/functions/')"));
+  // Service worker must never cache Worker API or navigate Push to arbitrary URLs.
+  const sw=read('public/sw.js');
+  assert.ok(sw.includes("u.pathname.startsWith('/api/')"));
   assert.ok(sw.includes("url.startsWith('/admin.html')"));
 
   // No obvious runtime code execution primitives.
-  for(const f of [...publicFiles,...fs.readdirSync(path.join(root,'netlify/functions')).filter(x=>x.endsWith('.js')).map(x=>'netlify/functions/'+x)]){
+  for(const f of [...publicFiles,...fs.readdirSync(path.join(root,'src/functions')).filter(x=>x.endsWith('.js')).map(x=>'src/functions/'+x)]){
     const s=read(f);
     assert.ok(!/\beval\s*\(/.test(s),`${f} uses eval`);
     assert.ok(!/new\s+Function\s*\(/.test(s),`${f} uses new Function`);
@@ -110,29 +110,29 @@ const manage=require('../netlify/functions/manage-booking');
   assert.ok(widen>=0&&seed>=0&&widen<seed,'clinic_services whitelist is not widened before seed');
 
   // Server code does not execute raw SQL; PostgREST filters that include bearer/user strings are encoded.
-  const funcs=fs.readdirSync(path.join(root,'netlify/functions')).filter(x=>x.endsWith('.js'));
+  const funcs=fs.readdirSync(path.join(root,'src/functions')).filter(x=>x.endsWith('.js'));
   for(const f of funcs){
-    const s=read('netlify/functions/'+f);
+    const s=read('src/functions/'+f);
     assert.ok(!/\b(?:SELECT|INSERT|UPDATE|DELETE)\s+.+\s+(?:FROM|INTO|SET)\b/i.test(s),`${f} appears to contain raw SQL`);
   }
-  assert.ok(read('netlify/functions/public-booking.js').includes('encodeURIComponent(token)'));
-  assert.ok(read('netlify/functions/send-booking.js').includes('encodeURIComponent(phone_norm)'));
+  assert.ok(read('src/functions/public-booking.js').includes('encodeURIComponent(token)'));
+  assert.ok(read('src/functions/send-booking.js').includes('encodeURIComponent(phone_norm)'));
 
   // Brute force and public abuse controls are wired in code + DB RPC.
-  const login=read('netlify/functions/admin-login.js');
+  const login=read('src/functions/admin-login.js');
   assert.ok(login.includes("consume('admin-login:ip'"));
   assert.ok(login.includes("consume('admin-login:user-fail'"));
-  assert.ok(read('netlify/functions/_public-guard.js').includes('/rest/v1/rpc/consume_public_rate_limit'));
+  assert.ok(read('src/functions/_public-guard.js').includes('/rest/v1/rpc/consume_public_rate_limit'));
 
   // CSP baseline exists, though unsafe-inline remains a documented residual risk.
-  const toml=read('netlify.toml');
+  const staticHeaders=read('public/_headers');
   for(const directive of ["default-src 'self'","object-src 'none'","frame-ancestors 'none'","base-uri 'self'","form-action 'self'"])
-    assert.ok(toml.includes(directive),`CSP missing ${directive}`);
+    assert.ok(staticHeaders.includes(directive),`CSP missing ${directive}`);
 
   
 // UX/security regression: user-controlled catalog data must stay escaped and old fake test taxonomy must not return.
 {
-  const index=read('index.html');
+  const index=read('public/index.html');
   assert(!/id="testsBox"|id="testType"/.test(index),'old generic tests dropdown must stay removed');
   assert(/function esc\(s\)/.test(index),'catalog rendering must keep HTML escaping');
   assert(/data-picker-item/.test(index),'service picker item selection must use data attributes');

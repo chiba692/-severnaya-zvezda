@@ -1,12 +1,16 @@
 {
   "private": true,
   "scripts": {
-    "validate": "node scripts/validate-project.js && node scripts/test-core.js && node scripts/security-tests.js"
+    "validate": "node scripts/validate-cloudflare.js && node scripts/test-core.js && node scripts/security-tests.js && node scripts/test-service-ux.js && node scripts/test-cloudflare.mjs",
+    "dev": "wrangler dev",
+    "deploy": "npm run validate && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "smoke": "node scripts/smoke-live.mjs"
   },
   "dependencies": {
     "web-push": "3.6.7"
   },
-  "engines": {
-    "node": ">=20 <25"
+  "devDependencies": {
+    "wrangler": "4.138.0"
   }
 }

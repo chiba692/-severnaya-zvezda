@@ -1,9 +1,9 @@
 const assert=require('assert');
 process.env.ADMIN_SESSION_SECRET='x'.repeat(64);
 process.env.ADMIN_SESSION_VERSION='1';
-const s=require('../netlify/functions/_schedule');
-const {normalizePhone}=require('../netlify/functions/_util');
-const {makeSession,getSession,verifyCsrf,COOKIE}=require('../netlify/functions/_auth');
+const s=require('../src/functions/_schedule');
+const {normalizePhone}=require('../src/functions/_util');
+const {makeSession,getSession,verifyCsrf,COOKIE}=require('../src/functions/_auth');
 function firstSaturday(year,month){for(let d=1;d<=7;d++){const ds=`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;if(s.type(ds)==='traumatologist')return ds}}
 assert.strictEqual(s.validate('2026-09-21','10:00',true),null);
 assert.strictEqual(s.validate('2026-09-21','10:10',true),'Время не соответствует расписанию');

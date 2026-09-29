@@ -43,7 +43,7 @@ create index if not exists booking_audit_booking_idx on public.booking_audit(boo
 -- В старой БД whitelist clinic_services не знал о новых направлениях.
 alter table public.clinic_services drop constraint if exists clinic_services_key_check;
 alter table public.clinic_services add constraint clinic_services_key_check
-check(service_key in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','farm','other','inpatient'));
+check(service_key in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','other','inpatient'));
 
 -- Северная звезда — прайс, новые направления записи и 30-минутный травматолог.
 -- Идемпотентная миграция: можно запускать повторно.
@@ -52,7 +52,7 @@ alter table public.bookings add column if not exists client_notice_reason text;
 
 alter table public.bookings drop constraint if exists bookings_service_check;
 
-alter table public.bookings add constraint bookings_service_check check(service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','farm','other','inpatient'));
+alter table public.bookings add constraint bookings_service_check check(service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','other','inpatient'));
 
 delete from public.clinic_services where service_key='inpatient';
 
@@ -65,7 +65,6 @@ insert into public.clinic_services(service_key,name,icon,price_label,description
 ('tests','Анализы','flask','по прайсу','Лабораторные исследования и забор материала.','Подготовка зависит от анализа.',20,50,true),
 ('surgery','Хирургия','scalpel','по прайсу','Хирургические вмешательства и предоперационная консультация.','Условия подготовки согласуются с клиникой.',20,60,true),
 ('dentistry','Стоматология','tooth','по прайсу','Удаление зубов и ультразвуковая санация ротовой полости.','Необходимость седации и подготовка уточняются заранее.',20,70,true),
-('farm','Сельскохозяйственные животные','farm','по прайсу','Осмотр, диагностика и процедуры для сельскохозяйственных животных.','Уточните вид животного и нужную помощь в заявке.',20,80,true),
 ('other','Другое','paw','уточним','Если нужная услуга не относится к направлениям выше, опишите запрос.','Администратор уточнит детали после получения заявки.',20,90,true)
 on conflict(service_key) do update set name=excluded.name,icon=excluded.icon,price_label=excluded.price_label,description=excluded.description,prep=excluded.prep,duration_minutes=excluded.duration_minutes,sort_order=excluded.sort_order,enabled=excluded.enabled,updated_at=now();
 
@@ -97,7 +96,7 @@ insert into public.clinic_price_items(item_key,category,name,price_label,booking
 ('general-004','Общие услуги','Первичный приём специалиста узкого профиля','1 600 ₽','exam',10,40,true),
 ('general-005','Общие услуги','Повторный приём специалиста узкого профиля','850 ₽','exam',10,50,true),
 ('general-006','Общие услуги','Оформление вет. паспорта без учёта его стоимости','500 ₽','exam',10,60,true),
-('general-007','Общие услуги','Забор крови из вены','кошки — 400 ₽; собаки — 450 ₽; хорьки — 500 ₽; КРС — 500 ₽','tests',10,70,true),
+('general-007','Общие услуги','Забор крови из вены','кошки — 400 ₽; собаки — 450 ₽; хорьки — 500 ₽','tests',10,70,true),
 ('general-008','Общие услуги','Забор материала на бак. посев','150 ₽','tests',10,80,true),
 ('general-009','Общие услуги','Экспресс-анализ мочи с консультацией','1 100 ₽','tests',10,90,true),
 ('general-010','Общие услуги','Люм. диагностика','300 ₽','tests',10,100,true),
@@ -202,29 +201,6 @@ insert into public.clinic_price_items(item_key,category,name,price_label,booking
 ('xray-004','Рентген','Рентген с барием','1 500 ₽','xray',40,40,true),
 ('xray-005','Рентген','Рентген черепа','1 000 ₽','xray',40,50,true),
 ('xray-006','Рентген','Рентген грудных конечностей','1 000 ₽','xray',40,60,true),
-('farm-001','Сельскохозяйственные животные','Внутривенное введение','от 1 000 ₽','farm',50,10,true),
-('farm-002','Сельскохозяйственные животные','П/к, в/м инъекции','150 ₽','farm',50,20,true),
-('farm-003','Сельскохозяйственные животные','Отделение последа (без стоимости медикаментов)','от 4 000 ₽','farm',50,30,true),
-('farm-004','Сельскохозяйственные животные','Осмотр','1 000 ₽','farm',50,40,true),
-('farm-005','Сельскохозяйственные животные','Обезроживание от 1–3 дней с рождения','500 ₽','farm',50,50,true),
-('farm-006','Сельскохозяйственные животные','Кастрация хряка','до 1 месяца — 600 ₽; старше 1 месяца — от 1 000 ₽; старше 8 месяцев (без стоимости медикаментов) — от 10 000 ₽','farm',50,60,true),
-('farm-007','Сельскохозяйственные животные','Кастрация козла','до 1 месяца — 550 ₽; с 3 месяцев до 1 года (без стоимости медикаментов) — от 3 500 ₽','farm',50,70,true),
-('farm-008','Сельскохозяйственные животные','Б/х анализ крови, 1 показатель','300 ₽','farm',50,80,true),
-('farm-009','Сельскохозяйственные животные','Клинический анализ','1 200 ₽','farm',50,90,true),
-('farm-010','Сельскохозяйственные животные','Обрезка копыт','КРС — 3 000 ₽ за одно копыто; козы — 1 000 ₽ за одно копыто','farm',50,100,true),
-('farm-011','Сельскохозяйственные животные','УЗИ','1 000 ₽','farm',50,110,true),
-('farm-012','Сельскохозяйственные животные','Надувание вымени при родовом парезе','1 000 ₽','farm',50,120,true),
-('farm-013','Сельскохозяйственные животные','Исследование молока на мастит','300 ₽','farm',50,130,true),
-('farm-014','Сельскохозяйственные животные','Внутриматочное, внутривыменное введение','400 ₽','farm',50,140,true),
-('farm-015','Сельскохозяйственные животные','Наложение швов','от 3 000 ₽','farm',50,150,true),
-('farm-016','Сельскохозяйственные животные','Родовспоможение','от 10 000 ₽','farm',50,160,true),
-('farm-017','Сельскохозяйственные животные','Вправление матки','от 15 000 ₽','farm',50,170,true),
-('farm-018','Сельскохозяйственные животные','Забор крови без стоимости пробирки','350 ₽','farm',50,180,true),
-('farm-019','Сельскохозяйственные животные','Забор материала на посев','500 ₽','farm',50,190,true),
-('farm-020','Сельскохозяйственные животные','Исследование на яйцеглист','1 200 ₽','farm',50,200,true),
-('farm-021','Сельскохозяйственные животные','Внутрирубцовое введение','от 600 ₽','farm',50,210,true),
-('farm-022','Сельскохозяйственные животные','Обламывание резцов свинье','от 1 000 ₽','farm',50,220,true),
-('farm-023','Сельскохозяйственные животные','Чипирование','1 500 ₽','farm',50,230,true),
 ('ultrasound-001','УЗИ','УЗИ одного органа','850 ₽','ultrasound',60,10,true),
 ('ultrasound-002','УЗИ','УЗИ МПС','1 000 ₽','ultrasound',60,20,true),
 ('ultrasound-003','УЗИ','УЗИ ЖКТ','1 200 ₽','ultrasound',60,30,true),
@@ -232,7 +208,7 @@ insert into public.clinic_price_items(item_key,category,name,price_label,booking
 ('ultrasound-005','УЗИ','УЗИ половой системы','900 ₽','ultrasound',60,50,true)
 on conflict(item_key) do update set category=excluded.category,name=excluded.name,price_label=excluded.price_label,booking_service=excluded.booking_service,category_order=excluded.category_order,sort_order=excluded.sort_order,enabled=excluded.enabled,updated_at=now();
 
-delete from public.clinic_price_items where item_key like any(array['general-%','vaccination-%','surgery-%','xray-%','farm-%','ultrasound-%']) and item_key not in ('general-001','general-002','general-003','general-004','general-005','general-006','general-007','general-008','general-009','general-010','general-011','general-012','general-013','general-014','general-015','general-016','general-017','general-018','general-019','general-020','general-021','general-022','general-023','general-024','general-025','general-026','general-027','general-028','general-029','general-030','general-031','general-032','general-033','general-034','general-035','general-036','general-037','general-038','general-039','general-040','general-041','general-042','general-043','general-044','general-045','general-046','general-047','general-048','general-049','general-050','general-051','general-052','vaccination-001','vaccination-002','vaccination-003','vaccination-004','vaccination-005','vaccination-006','vaccination-007','vaccination-008','vaccination-009','vaccination-010','vaccination-011','vaccination-012','vaccination-013','vaccination-014','vaccination-015','surgery-001','surgery-002','surgery-003','surgery-004','surgery-005','surgery-006','surgery-007','surgery-008','surgery-009','surgery-010','surgery-011','surgery-012','surgery-013','surgery-014','surgery-015','surgery-016','surgery-017','surgery-018','surgery-019','surgery-020','surgery-021','surgery-022','surgery-023','surgery-024','surgery-025','surgery-026','surgery-027','surgery-028','surgery-029','surgery-030','surgery-031','surgery-032','surgery-033','surgery-034','surgery-035','surgery-036','surgery-037','surgery-038','xray-001','xray-002','xray-003','xray-004','xray-005','xray-006','farm-001','farm-002','farm-003','farm-004','farm-005','farm-006','farm-007','farm-008','farm-009','farm-010','farm-011','farm-012','farm-013','farm-014','farm-015','farm-016','farm-017','farm-018','farm-019','farm-020','farm-021','farm-022','farm-023','ultrasound-001','ultrasound-002','ultrasound-003','ultrasound-004','ultrasound-005');
+delete from public.clinic_price_items where item_key like any(array['general-%','vaccination-%','surgery-%','xray-%','ultrasound-%']) and item_key not in ('general-001','general-002','general-003','general-004','general-005','general-006','general-007','general-008','general-009','general-010','general-011','general-012','general-013','general-014','general-015','general-016','general-017','general-018','general-019','general-020','general-021','general-022','general-023','general-024','general-025','general-026','general-027','general-028','general-029','general-030','general-031','general-032','general-033','general-034','general-035','general-036','general-037','general-038','general-039','general-040','general-041','general-042','general-043','general-044','general-045','general-046','general-047','general-048','general-049','general-050','general-051','general-052','vaccination-001','vaccination-002','vaccination-003','vaccination-004','vaccination-005','vaccination-006','vaccination-007','vaccination-008','vaccination-009','vaccination-010','vaccination-011','vaccination-012','vaccination-013','vaccination-014','vaccination-015','surgery-001','surgery-002','surgery-003','surgery-004','surgery-005','surgery-006','surgery-007','surgery-008','surgery-009','surgery-010','surgery-011','surgery-012','surgery-013','surgery-014','surgery-015','surgery-016','surgery-017','surgery-018','surgery-019','surgery-020','surgery-021','surgery-022','surgery-023','surgery-024','surgery-025','surgery-026','surgery-027','surgery-028','surgery-029','surgery-030','surgery-031','surgery-032','surgery-033','surgery-034','surgery-035','surgery-036','surgery-037','surgery-038','xray-001','xray-002','xray-003','xray-004','xray-005','xray-006','ultrasound-001','ultrasound-002','ultrasound-003','ultrasound-004','ultrasound-005');
 
 -- Старые записи, существовавшие до этого обновления, не удаляются.
 
@@ -300,7 +276,7 @@ revoke all on public.clinic_settings from anon,authenticated;
 
 
 -- ================================================================
--- SECURITY HARDENING: прямой доступ к БД закрыт, сайт работает через Netlify Functions.
+-- SECURITY HARDENING: прямой доступ к БД закрыт, сайт работает через серверный API Cloudflare Worker.
 -- ================================================================
 
 -- Токены новых записей — 32 случайных байта (64 hex). Старые 48-символьные ссылки остаются валидны.
@@ -322,7 +298,7 @@ where service <> 'inpatient' and status not in ('rejected','cancelled') and arch
 -- Ограничиваем допустимое направление каждой строки прайса.
 alter table public.clinic_price_items drop constraint if exists clinic_price_items_booking_service_check;
 alter table public.clinic_price_items add constraint clinic_price_items_booking_service_check
-check(booking_service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','farm','other'));
+check(booking_service in ('exam','ultrasound','xray','vaccination','tests','surgery','dentistry','other'));
 alter table public.clinic_price_items drop constraint if exists clinic_price_items_key_format_check;
 alter table public.clinic_price_items add constraint clinic_price_items_key_format_check
 check(item_key ~ '^[a-z]+-[0-9]{3}$');
@@ -415,7 +391,7 @@ for each row execute function public.guard_public_booking_insert();
 revoke execute on function public.guard_public_booking_insert() from public,anon,authenticated;
 grant execute on function public.guard_public_booking_insert() to service_role;
 
--- Все таблицы приложения закрыты от anon/authenticated. Netlify Functions работают service_role.
+-- Все таблицы приложения закрыты от anon/authenticated. Cloudflare Worker работает через service_role.
 alter table public.bookings enable row level security;
 alter table public.clinic_services enable row level security;
 alter table public.clinic_price_items enable row level security;
@@ -515,9 +491,6 @@ update public.clinic_price_items
 set category='Эвтаназия и утилизация', category_order=100, booking_service='other', updated_at=now()
 where item_key in ('general-043','general-045','general-046','general-050');
 
-update public.clinic_price_items
-set category='Сельскохозяйственные животные', category_order=110, booking_service='farm', updated_at=now()
-where item_key like 'farm-%';
 
 update public.clinic_price_items
 set category='Особые условия', category_order=120, booking_service='other', updated_at=now()
@@ -532,7 +505,7 @@ update public.clinic_services set
 where service_key='exam';
 
 update public.clinic_services set price_label='смотреть цены', updated_at=now()
-where service_key in ('tests','surgery','dentistry','farm');
+where service_key in ('tests','surgery','dentistry');
 
 -- В форме записи анализы выбираются из реальных позиций прайса:
 -- «Клинический анализ крови», «Биохимический анализ крови» и т. д.

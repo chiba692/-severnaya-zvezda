@@ -1,0 +1,2 @@
+const {reply,requireAdmin}=require('./_util');const {sendPush}=require('./_push');
+exports.handler=async event=>{if(event.httpMethod!=='POST')return reply(405,{error:'Method not allowed'});const a=requireAdmin(event,{csrf:true});if(!a.ok)return reply(a.status,{error:a.error});const sent=await sendPush({title:'🐾 Северная звезда',body:'Тестовое уведомление работает.',url:'/admin.html#today',badge:1});return sent?reply(200,{ok:true}):reply(503,{error:'Не удалось отправить Push. Проверьте VAPID и подписку устройства.'})};

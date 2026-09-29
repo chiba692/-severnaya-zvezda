@@ -1,4 +1,1 @@
-const base=(process.env.SITE_URL||'https://zevzvezda.netlify.app').replace(/\/$/,'');
-const targets=['/','/admin.html','/booking.html','/privacy.html','/.netlify/functions/health'];let failed=false;
-for(const p of targets){try{const r=await fetch(base+p,{redirect:'follow'});console.log(`${r.status} ${p}`);if(!r.ok&&p!=='/booking.html')failed=true}catch(e){console.error('FAIL',p,e.message);failed=true}}
-if(failed)process.exit(1);
+const base=(process.env.SITE_URL||'http://127.0.0.1:8787').replace(/\/$/,'');const targets=['/','/admin.html','/booking.html','/privacy.html','/api/health'];let failed=false;for(const p of targets){try{const r=await fetch(base+p,{redirect:'manual'});const ok=r.status>=200&&r.status<400;console.log(`${ok?'OK':'FAIL'} ${r.status} ${p}`);if(!ok)failed=true}catch(e){console.log(`FAIL ${p}: ${e.message}`);failed=true}}if(failed)process.exit(1);
