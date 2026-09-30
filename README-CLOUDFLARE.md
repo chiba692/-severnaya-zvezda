@@ -1,4 +1,4 @@
-# Северная звезда — CLOUDFLARE FINAL v9
+# Северная звезда — CLOUDFLARE FINAL v10
 
 Это единая финальная сборка. Предыдущие v7.1, v8 и v8.1 НЕ НУЖНО ставить по очереди.
 
@@ -31,10 +31,10 @@
 - после первого успешного deploy: `SITE_URL=https://severnaya-zvezda.<ваш-subdomain>.workers.dev`
 
 ## Деплой
-1. Полностью заменить содержимое рабочего GitHub-репозитория содержимым этого архива. Старые Netlify-файлы удалить.
-2. GitHub Desktop: Commit → Push.
-3. Cloudflare build command: `npm run validate`; deploy command: `npx wrangler deploy`.
-4. В логе Wrangler ДОЛЖЕН увидеть существующий `wrangler.jsonc`; он не должен создавать новый конфиг. Assets должны быть `./public`, а не `.`.
-5. После успешного deploy выполнить `supabase/FINAL-MIGRATION.sql` в Supabase SQL Editor.
+1. Сначала выполнить `supabase/FINAL-MIGRATION.sql` в Supabase SQL Editor. Это безопасно для существующих клиентских записей и добавляет поле для собственного вида животного до выхода нового frontend/backend.
+2. Полностью заменить содержимое рабочего GitHub-репозитория содержимым этого архива. Старые Netlify-файлы удалить.
+3. GitHub Desktop: Commit → Push. Cloudflare должен выполнить `npm run validate` и затем `npx wrangler deploy`.
+4. В логе Wrangler должен использовать существующий `wrangler.jsonc`; assets — только `./public`. После deploy проверить `/api/health` и `/api/price-items`.
+5. Для автоматического production-smoke можно выполнить `SITE_URL=https://severnaya-zvezda.eugangster161.workers.dev npm run smoke` — ожидается 116 позиций и 0 farm.
 
-После deploy проверить `/`, `/prices.html`, `/admin.html`, `/api/health`.
+Старые SQL отдельно не запускать.

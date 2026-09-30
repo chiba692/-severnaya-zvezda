@@ -1,4 +1,4 @@
--- Северная звезда — FINAL MIGRATION v9
+-- Северная звезда — FINAL MIGRATION v10
 -- ЕДИНАЯ кумулятивная идемпотентная миграция.
 -- Включает полный прайс без сельскохозяйственного направления, 30-минутного травматолога,
 -- admin-comfort schema, RLS/security hardening и совместимость с предыдущими версиями.
@@ -9,6 +9,7 @@ create extension if not exists pgcrypto;
 -- Совместимость со старыми production-сборками.
 alter table public.bookings add column if not exists archived_at timestamptz;
 alter table public.bookings add column if not exists client_notice_reason text;
+alter table public.bookings add column if not exists pet_species_other text;
 alter table public.clinic_services add column if not exists duration_minutes integer not null default 20;
 
 create table if not exists public.clinic_settings(

@@ -1,0 +1,34 @@
+СЕВЕРНАЯ ЗВЕЗДА — FINAL v10 / PRE-DEPLOY AUDIT
+
+Локально/статически ПРОЙДЕНО:
+- Cloudflare structure / Worker + public assets
+- JS syntax + inline scripts
+- 19/19 frontend API route mapping
+- security regression suite
+- 116 non-farm price items in FINAL SQL
+- farm excluded by API + removed by FINAL SQL
+- clinical blood analysis terminology preserved
+- species: cat/dog/ferret/rabbit/rodent/bird/other; no reptiles
+- custom species field persisted server-side
+- 30.10.2026 = regular day, 20-minute slots
+- 03.10.2026 = first Saturday, traumatologist, 30-minute slots
+- admin species localization
+- large admin quick actions
+- public/admin price wrapping CSS guards
+- top booking hover/focus guard
+- visible version badge removed
+- dynamic price count; no hardcoded 139
+- PWA cache version bumped to v10
+
+НЕ МОЖЕТ БЫТЬ ПОМЕЧЕНО PASS ДО DEPLOY:
+- production E2E v10
+- real Android/iPhone visual rendering
+- real Web Push delivery after v10
+- real admin create/reschedule/cancel against migrated production DB
+
+DEPLOY ORDER:
+1) Run supabase/FINAL-MIGRATION.sql.
+2) Replace repository contents with this v10 build; Commit + Push.
+3) Wait for Cloudflare deploy.
+4) Check /api/health and /api/price-items.
+5) Run SITE_URL=https://severnaya-zvezda.eugangster161.workers.dev npm run smoke if desired.

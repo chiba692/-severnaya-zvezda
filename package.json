@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "validate": "node scripts/validate-cloudflare.js && node scripts/test-core.js && node scripts/security-tests.js && node scripts/test-service-ux.js && node scripts/test-cloudflare.mjs && node scripts/test-route-contract.mjs",
+    "validate": "node scripts/validate-cloudflare.js && node scripts/test-core.js && node scripts/test-ui-date-logic.js && node scripts/security-tests.js && node scripts/test-service-ux.js && node scripts/test-cloudflare.mjs && node scripts/test-route-contract.mjs",
     "dev": "wrangler dev",
     "deploy": "npm run validate && wrangler deploy",
     "cf-typegen": "wrangler types",
